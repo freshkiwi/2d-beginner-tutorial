@@ -12,6 +12,9 @@ public class rubyController : MonoBehaviour
 
     public GameObject projectilePrefab;
 
+    public AudioClip throwClip;
+    public AudioClip hitSound;
+
     public int health { get { return currentHealth; }}
     int currentHealth;
 
@@ -26,10 +29,14 @@ public class rubyController : MonoBehaviour
     Animator animator;
     Vector2 lookDirection = new Vector2(1,0);
 
+    AudioSource audioSource;
+
+
     void Start()
     {
         rigidbody2d = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
 
         currentHealth = maxHealth;
     }
@@ -62,6 +69,19 @@ public class rubyController : MonoBehaviour
         {
             Launch();
         }
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(rigidbody2d.position + Vector2.up * 0.2f, lookDirection, 1.5f, LayerMask.GetMask("NPC"));
+            if (hit.collider != null)
+            {
+                NonPlayerCharacter character = hit.collider.GetComponent<NonPlayerCharacter>();
+                if (character != null)
+                {
+                    character.DisplayDialog();
+                }
+            }
+        }
     }
 
     void FixedUpdate()
@@ -84,6 +104,8 @@ public class rubyController : MonoBehaviour
             isInvincible = true;
             invincibleTimer = timeInvincible;
 
+            PlaySound(hitSound);
+
         }
 
         currentHealth = Mathf.Clamp(currentHealth + amount, 0, maxHealth);
@@ -98,5 +120,12 @@ public class rubyController : MonoBehaviour
         projectile.Launch(lookDirection, 300);
 
         animator.SetTrigger("Launch");
+
+        PlaySound(throwClip);
+
+    }
+    public void PlaySound(AudioClip clip)
+    {
+        audioSource.PlayOneShot(clip);
     }
 }
